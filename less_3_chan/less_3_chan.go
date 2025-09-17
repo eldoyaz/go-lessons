@@ -8,7 +8,7 @@ import (
 
 var sum float64
 
-const limit = 1000000 // 1млн.
+const limit = 10000000 // 10 млн.
 
 func Less3Chan() {
 	goroutineCount := 100
