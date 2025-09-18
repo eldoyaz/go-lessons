@@ -1,4 +1,4 @@
-package less_3_chan
+package less_3_1_chan
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ var sum float64
 
 const limit = 10000000 // 10 млн.
 
-func Less3Chan() {
+func Less31Chan() {
 	goroutineCount := 100
 	sumCh := make(chan float64, goroutineCount)
 
