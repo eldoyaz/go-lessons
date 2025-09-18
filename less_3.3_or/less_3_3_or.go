@@ -37,23 +37,25 @@ func or(channels ...<-chan interface{}) <-chan interface{} {
 			value, ok := <-ch
 			if !ok {
 				fmt.Println("Канал закрыт")
-				orStatus <- struct{}{}
+				//orStatus <- struct{}{}
+				close(orStatus)
+				return
 			} else {
 				fmt.Printf("Получено значение: %v\n", value)
 			}
 		}()
 	}
 
-loop:
-	for {
-		select {
-		case <-orStatus:
-			println("orStatus closed")
-			time.Sleep(100 * time.Millisecond)
-			close(orStatus)
-			break loop
-		}
-	}
+	//loop:
+	//	for {
+	//		select {
+	//		case <-orStatus:
+	//			println("orStatus closed")
+	//			time.Sleep(100 * time.Millisecond)
+	//			close(orStatus)
+	//			break loop
+	//		}
+	//	}
 
 	return orStatus
 }
