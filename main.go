@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	less_3_3_or "go-lessons/less_3.3_or"
+	less_3_2_sem "go-lessons/less_3.2_sem"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		fmt.Printf("main() took %v\n", time.Since(now))
 	}(time.Now())
 
-	//less_3_1_chan.Less3Chan()
-	//less_3_2_sem.Less32Sem_v2()
-	less_3_3_or.Less33Or()
+	//less_3_1_chan.Less31Chan()
+	less_3_2_sem.Less32semV2()
+	//less_3_3_or.Less33Or()
 }
