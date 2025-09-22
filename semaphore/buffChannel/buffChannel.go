@@ -12,25 +12,22 @@ type ChanSemaphore struct {
 }
 
 // NewChanSemaphore создает новый семафор с заданным количеством ресурсов (n).
-// n должно быть > 0, иначе вернет ошибку.
 func NewChanSemaphore(n int64) *ChanSemaphore {
 	sem := &ChanSemaphore{
-		tokens: make(chan struct{}, n), // Буфер размером n для занятых ресурсов
+		tokens: make(chan struct{}, n),
 	}
-	// Канал изначально пустой
 	return sem
 }
 
-// Acquire захватывает n ресурсов. Блокируется, если ресурсов недостаточно.
-// Поддерживает отмену через context. Возвращает ошибку, если контекст отменен.
+// Acquire захватывает n ресурсов.
 func (s *ChanSemaphore) Acquire(ctx context.Context, n int64) error {
 	if n <= 0 {
 		return nil // Ничего не делать для n <= 0
 	}
 	for i := int64(0); i < n; i++ {
 		select {
-		case s.tokens <- struct{}{}: // Занимаем ресурс (пишем в канал)
-		case <-ctx.Done(): // Контекст отменен
+		case s.tokens <- struct{}{}: // Блокируется, если ресурсов недостаточно
+		case <-ctx.Done():
 			// Возвращаем уже занятые ресурсы обратно (читаем из канала)
 			for j := int64(0); j < i; j++ {
 				<-s.tokens
@@ -49,7 +46,7 @@ func (s *ChanSemaphore) TryAcquire(n int64) bool {
 	}
 	for i := int64(0); i < n; i++ {
 		select {
-		case s.tokens <- struct{}{}: // Занимаем ресурс (пишем в канал)
+		case s.tokens <- struct{}{}:
 		default: // Нет доступных ресурсов (канал полон)
 			// Возвращаем уже занятые ресурсы обратно (читаем из канала)
 			for j := int64(0); j < i; j++ {
@@ -62,12 +59,16 @@ func (s *ChanSemaphore) TryAcquire(n int64) bool {
 }
 
 // Release освобождает n ресурсов. Не блокируется, но если освобождается больше,
-// чем занято (канал пустой), это ошибка (в продакшене добавьте проверки).
+// чем занято (канал пустой), это ошибка.
 func (s *ChanSemaphore) Release(n int64) {
 	if n <= 0 {
 		return
 	}
 	for i := int64(0); i < n; i++ {
-		<-s.tokens // Освобождаем ресурс (читаем из канала)
+		select {
+		case <-s.tokens: // Освобождаем ресурс (читаем из канала)
+		default:
+			return
+		}
 	}
 }
