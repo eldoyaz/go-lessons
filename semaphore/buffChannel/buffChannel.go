@@ -28,10 +28,6 @@ func (s *ChanSemaphore) Acquire(ctx context.Context, n int64) error {
 		select {
 		case s.tokens <- struct{}{}: // Блокируется, если ресурсов недостаточно
 		case <-ctx.Done():
-			// Возвращаем уже занятые ресурсы обратно (читаем из канала)
-			for j := int64(0); j < i; j++ {
-				<-s.tokens
-			}
 			return ctx.Err()
 		}
 	}

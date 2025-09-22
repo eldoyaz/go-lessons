@@ -84,12 +84,12 @@ func initArgs() (n *int64, t *string) {
 	t = flag.String("t", "", "Тип семафора")
 	flag.Parse() // Разбираем аргументы
 	if *n <= 0 {
-		log.Fatalln("Ошибка: n должно быть положительным числом")
+		log.Fatalln("Ошибка: -n должно быть положительным числом")
 	}
 	fmt.Printf("Получено ресурсов n = %d\n", *n)
 
 	if *t == "" {
-		log.Fatalln("Ошибка: t должно быть строкой")
+		log.Fatalln("Ошибка: -t должно быть строкой")
 	}
 	fmt.Printf("Получен тип t = %s\n", *t)
 
