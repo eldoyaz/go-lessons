@@ -4,3 +4,21 @@
 урок 3.3. доработать чтоб не паниковали другие горутины (все по 1сек.)
 урок 3.1 - доделать signterm...
 
+
+папки
+
+import (
+	"fmt"
+)
+
+func main() {
+	defer fmt.Println(foo())
+	fmt.Println("1")
+}
+
+func foo() string {
+	defer fmt.Println("3")
+	fmt.Println("2")
+	return "4"
+}
+

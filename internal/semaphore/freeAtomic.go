@@ -1,4 +1,4 @@
-package freeAtomic
+package semaphore
 
 import (
 	"context"
@@ -6,18 +6,17 @@ import (
 )
 
 // AtomicSemaphore простая реализация семафора с использованием atomic.Int64 для счетчика свободных ресурсов
-// и sync.Cond для блокировки/ожидания. Это аналог предыдущей реализации на каналах,
-// но без буферизированного канала — вместо него freeAtomic для подсчета и cond для синхронизации.
 type AtomicSemaphore struct {
 	free atomic.Int64 // Число свободных ресурсов
 }
 
-// NewAtomic создает новый семафор с заданным количеством ресурсов (n).
-func NewAtomic(n int64) *AtomicSemaphore {
+// NewAtomicSemaphore создает новый семафор с заданным количеством ресурсов (n).
+func NewAtomicSemaphore(n int64) *AtomicSemaphore {
 	sem := &AtomicSemaphore{
 		free: atomic.Int64{},
 	}
 	sem.free.Store(n)
+
 	return sem
 }
 
@@ -30,7 +29,8 @@ func (s *AtomicSemaphore) Acquire(ctx context.Context, n int64) error {
 	for {
 		free := s.free.Load()
 		if free >= n {
-			if m := s.free.Add(-n); m >= 0 {
+			// @todo: брать по 1 ресурсу
+			if s.free.CompareAndSwap(free, free-n) {
 				return nil
 			}
 		} else {
@@ -38,6 +38,8 @@ func (s *AtomicSemaphore) Acquire(ctx context.Context, n int64) error {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
+			default:
+				continue
 			}
 		}
 	}
@@ -49,17 +51,13 @@ func (s *AtomicSemaphore) TryAcquire(n int64) bool {
 	if n <= 0 {
 		return true // Ничего не делать для n <= 0
 	}
-	for {
-		free := s.free.Load()
-		if free >= n {
-			if s.free.CompareAndSwap(free, free-n) {
-				return true
-			}
-			// CAS не удался, повторить
-		} else {
-			return false
-		}
+
+	free := s.free.Load()
+	if free >= n {
+		return s.free.CompareAndSwap(free, free-n)
 	}
+
+	return false
 }
 
 // Release освобождает n ресурсов.
@@ -67,5 +65,6 @@ func (s *AtomicSemaphore) Release(n int64) {
 	if n <= 0 {
 		return // Ничего не делать для n <= 0
 	}
+
 	s.free.Add(n)
 }
