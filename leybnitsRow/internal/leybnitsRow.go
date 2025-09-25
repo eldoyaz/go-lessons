@@ -5,10 +5,6 @@ import (
 	"sync"
 )
 
-func Less31Chan() {
-
-}
-
 func CalcPart(init int64, step int64, ch chan float64, wg *sync.WaitGroup) {
 	var s float64
 

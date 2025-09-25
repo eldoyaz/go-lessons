@@ -1,4 +1,4 @@
-package semaphore
+package mySemaphore
 
 import (
 	"context"
