@@ -1,4 +1,4 @@
-package leybnitsRow
+package internal
 
 import (
 	"math"
