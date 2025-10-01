@@ -1,4 +1,4 @@
-package closeOrChannel
+package internal
 
 import (
 	"context"
@@ -12,25 +12,33 @@ func Or(channels ...<-chan interface{}) <-chan interface{} {
 	//defer cancel()
 
 	for _, ch := range channels {
-		go func(ctx context.Context, ch <-chan interface{}) {
+		go func(ch <-chan interface{}) {
 
 			for {
 				select {
-				case orStatus <- <-ch:
+				case <-ch:
 					fmt.Println("Канал закрыт")
+					close(orStatus)
 					cancel()
+					//return
 				case <-ctx.Done():
 					return
 				}
 			}
 
-			// Проверяем статус
+			//Проверяем статус
 			//_, ok := <-ch
 			//if !ok {
 			//	fmt.Println("Канал закрыт")
+			//
+			//	_, ok1 := <-orStatus
+			//	if !ok1 {
+			//		fmt.Println("Канал1 закрыт")
+			//		return
+			//	}
 			//	close(orStatus)
 			//}
-		}(ctx, ch)
+		}(ch)
 	}
 
 	return orStatus

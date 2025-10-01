@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"go-lessons/internal"
 	"time"
-
-	closeOrChannel "go-lessons/closeOrChannel/internal"
 )
 
 func main() {
@@ -22,10 +21,10 @@ func main() {
 	//ctx, cancel := context.WithCancel(context.Background())
 	//defer cancel()
 
-	<-closeOrChannel.Or(
-		sig(3*time.Second),
+	<-internal.Or(
 		sig(2*time.Second),
-		sig(5*time.Second),
+		sig(1999*time.Millisecond),
+		sig(4*time.Second),
 		//sig(1*time.Hour),
 	)
 
