@@ -1,4 +1,4 @@
-package mySemaphore
+package internal
 
 import (
 	"context"

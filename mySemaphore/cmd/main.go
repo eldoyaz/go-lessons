@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	mySemaphore "go-lessons/mySemaphore/internal"
+	mySemaphore "mySemaphore/internal"
 
 	"golang.org/x/sync/semaphore"
 )
