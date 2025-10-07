@@ -7,68 +7,13 @@ import (
 	"log"
 	"time"
 
-	mySemaphore "mySemaphore/internal"
-
-	"golang.org/x/sync/semaphore"
+	my "mySemaphore/internal"
 )
-
-type SemaphoreType string
-
-const (
-	SemaphoreTypeChannel SemaphoreType = "channel"
-	SemaphoreTypeAtomic  SemaphoreType = "atomic"
-	SemaphoreTypeXSync   SemaphoreType = "x_sync"
-)
-
-func (t SemaphoreType) Valid() bool {
-	return t == SemaphoreTypeChannel ||
-		t == SemaphoreTypeAtomic ||
-		t == SemaphoreTypeXSync
-}
-
-func (t SemaphoreType) Create(n int64) mySemaphore.MySemaphore {
-
-	var sem mySemaphore.MySemaphore
-
-	switch t {
-	case SemaphoreTypeChannel:
-		sem = mySemaphore.NewBuffChanSemaphore(n)
-	case SemaphoreTypeAtomic:
-		sem = mySemaphore.NewAtomicSemaphore(n)
-	case SemaphoreTypeXSync:
-		sem = semaphore.NewWeighted(n)
-	}
-	return sem
-}
-
-func initArgs() (int64, string) {
-
-	n := flag.Int64("n", 0, "Макс. количество ресурсов")
-	t := flag.String("t", "", "Тип семафора")
-	flag.Parse() // Разбираем аргументы
-
-	if *n <= 0 {
-		log.Fatalln("Ошибка: -n должно быть положительным числом")
-	}
-	log.Printf("Получено ресурсов n = %d\n", *n)
-
-	if *t == "" {
-		log.Fatalln("Ошибка: -t должно быть строкой")
-	}
-	log.Printf("Получен тип t = %s\n", *t)
-
-	semType := SemaphoreType(*t)
-	if !semType.Valid() {
-		log.Fatalln("Не соответствует типам семафора:", semType)
-	}
-
-	return *n, *t
-}
 
 func main() {
 	n, t := initArgs()
 
-	sem := SemaphoreType(t).Create(n)
+	sem := my.SemaphoreType(t).Create(n)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -97,4 +42,28 @@ func main() {
 	} else {
 		fmt.Println("TryAcquire: не удалось")
 	}
+}
+
+func initArgs() (int64, string) {
+
+	n := flag.Int64("n", 0, "Макс. количество ресурсов")
+	t := flag.String("t", "", "Тип семафора")
+	flag.Parse() // Разбираем аргументы
+
+	if *n <= 0 {
+		log.Fatalln("Ошибка: -n должно быть положительным числом")
+	}
+	log.Printf("Получено ресурсов n = %d\n", *n)
+
+	if *t == "" {
+		log.Fatalln("Ошибка: -t должно быть строкой")
+	}
+	log.Printf("Получен тип t = %s\n", *t)
+
+	semType := my.SemaphoreType(*t)
+	if !semType.Valid() {
+		log.Fatalln("Не соответствует типам семафора:", semType)
+	}
+
+	return *n, *t
 }

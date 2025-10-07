@@ -27,18 +27,6 @@ func Or(ctx context.Context, channels ...<-chan interface{}) <-chan interface{} 
 				}
 			}
 
-			//Проверяем статус
-			//_, ok := <-ch
-			//if !ok {
-			//	fmt.Println("Канал закрыт")
-			//
-			//	_, ok1 := <-orStatus
-			//	if !ok1 {
-			//		fmt.Println("Канал1 закрыт")
-			//		return
-			//	}
-			//	close(orStatus)
-			//}
 		}(ctx, ch)
 	}
 
