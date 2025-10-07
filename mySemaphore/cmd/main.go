@@ -46,8 +46,8 @@ func main() {
 
 func initArgs() (int64, string) {
 
-	n := flag.Int64("n", 0, "Макс. количество ресурсов")
-	t := flag.String("t", "", "Тип семафора")
+	n := flag.Int64("n", 5, "Макс. количество ресурсов")
+	t := flag.String("t", "channel", "Тип семафора")
 	flag.Parse() // Разбираем аргументы
 
 	if *n <= 0 {
