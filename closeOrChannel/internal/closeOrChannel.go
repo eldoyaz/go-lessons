@@ -3,25 +3,26 @@ package internal
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
-func Or(channels ...<-chan interface{}) <-chan interface{} {
+func Or(ctx context.Context, channels ...<-chan interface{}) <-chan interface{} {
 	orStatus := make(chan interface{})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
+	once := &sync.Once{}
 
 	for _, ch := range channels {
-		go func(ch <-chan interface{}) {
+		go func(ctx context.Context, ch <-chan interface{}) {
 
 			for {
 				select {
 				case <-ch:
 					fmt.Println("Канал закрыт")
-					close(orStatus)
-					cancel()
-					//return
+					once.Do(func() {
+						close(orStatus)
+					})
+					return
 				case <-ctx.Done():
+					fmt.Println("Контекст закрыт")
 					return
 				}
 			}
@@ -38,7 +39,7 @@ func Or(channels ...<-chan interface{}) <-chan interface{} {
 			//	}
 			//	close(orStatus)
 			//}
-		}(ch)
+		}(ctx, ch)
 	}
 
 	return orStatus

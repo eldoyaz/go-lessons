@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"go-lessons/internal"
 	"time"
+
+	"closeOrChannel/internal"
 )
 
 func main() {
@@ -16,20 +18,21 @@ func main() {
 		return c
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	start := time.Now()
 
-	//ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
-
 	<-internal.Or(
+		ctx,
 		sig(2*time.Second),
 		sig(1999*time.Millisecond),
-		sig(4*time.Second),
+		sig(10*time.Second),
 		//sig(1*time.Hour),
 	)
+	cancel()
 
 	fmt.Printf("done after %v\n", time.Since(start))
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(1 * time.Second)
 	// попытка закрыть канал 2ой раз
 }
