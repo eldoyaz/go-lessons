@@ -1,27 +1,70 @@
 package internal
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"math"
 	"sync"
+	"time"
 )
 
-func CalcPart(init int64, step int64, ch chan float64, wg *sync.WaitGroup) {
-	var s float64
-
-	for i := init; i >= 0; i += step {
-		s += Elem(i)
-		//fmt.Printf("s=%v\n", s)
-	}
-
-	ch <- s
-	wg.Done()
+type PiCounter struct {
+	contextTimeoutSec int
+	goroutineCount    int
+	goroutineSum      chan float64
+	wg                *sync.WaitGroup
 }
 
-func Elem(n int64) float64 {
-	//fmt.Printf("-------\nn=%d\n", n)
+func NewPiCounter(goroutineCount, contextTimeout int) *PiCounter {
+	return &PiCounter{
+		contextTimeoutSec: contextTimeout,
+		goroutineCount:    goroutineCount,
+		goroutineSum:      make(chan float64, goroutineCount),
+		wg:                &sync.WaitGroup{},
+	}
+}
 
-	e := math.Pow(-1, float64(n)) / float64(2*n+1)
-	//fmt.Printf("e=%v\n", e)
+func (p *PiCounter) calc(ctx context.Context, i int64) {
+	defer p.wg.Done()
 
-	return e
+	var sum float64
+
+	for {
+		select {
+		case <-ctx.Done():
+			p.goroutineSum <- sum
+			return
+		default:
+			sum += math.Pow(-1, float64(i)) / float64(2*i+1)
+			i += int64(p.goroutineCount)
+		}
+	}
+
+}
+
+func (p *PiCounter) Start() {
+	defer func() {
+		close(p.goroutineSum)
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.contextTimeoutSec)*time.Second)
+	defer cancel()
+
+	for i := int64(0); i < int64(p.goroutineCount); i++ {
+		p.wg.Add(1)
+		go p.calc(ctx, i)
+	}
+	p.wg.Wait()
+}
+
+func (p *PiCounter) Print() {
+	var sum float64
+
+	for s := range p.goroutineSum {
+		log.Println("sum:", s)
+		sum += s
+	}
+
+	fmt.Printf("\nsum*4 = %.9f\n", sum*4)
 }
