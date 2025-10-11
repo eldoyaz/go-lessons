@@ -3,7 +3,7 @@
 ## leybnitsRow
 status: done
 tests: no
-issues: go run ./leybnitsRow/cmd/main.go
+issues: 
 
 ## mySemaphore
 status: done

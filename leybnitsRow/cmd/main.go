@@ -1,10 +1,18 @@
 package main
 
-import "leybnitsRow/internal"
+import (
+	"fmt"
+	"time"
+
+	"leybnitsRow/internal"
+)
 
 func main() {
+	defer func(now time.Time) {
+		fmt.Printf("main() took %v\n", time.Since(now))
+	}(time.Now())
 
-	pc := internal.NewPiCounter(3, 3)
+	pc := internal.NewPiCounter(3, 9)
 	pc.Start()
 	pc.Print()
 

@@ -30,6 +30,23 @@ func NewPiCounter(goroutineCount, contextTimeout int) *PiCounter {
 	}
 }
 
+func (p *PiCounter) Start() {
+	defer func() {
+		close(p.goroutineSum)
+	}()
+
+	signal.Notify(p.signChan, syscall.SIGINT, syscall.SIGTERM)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.contextTimeoutSec)*time.Second)
+	defer cancel()
+
+	for i := int64(0); i < int64(p.goroutineCount); i++ {
+		p.wg.Add(1)
+		go p.calc(ctx, cancel, i)
+	}
+	p.wg.Wait()
+}
+
 func (p *PiCounter) calc(ctx context.Context, cancel context.CancelFunc, i int64) {
 	defer p.wg.Done()
 
@@ -51,23 +68,6 @@ func (p *PiCounter) calc(ctx context.Context, cancel context.CancelFunc, i int64
 			i += int64(p.goroutineCount)
 		}
 	}
-}
-
-func (p *PiCounter) Start() {
-	defer func() {
-		close(p.goroutineSum)
-	}()
-
-	signal.Notify(p.signChan, syscall.SIGINT, syscall.SIGTERM)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.contextTimeoutSec)*time.Second)
-	defer cancel()
-
-	for i := int64(0); i < int64(p.goroutineCount); i++ {
-		p.wg.Add(1)
-		go p.calc(ctx, cancel, i)
-	}
-	p.wg.Wait()
 }
 
 func (p *PiCounter) Print() {
