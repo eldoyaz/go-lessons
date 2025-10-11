@@ -1,15 +1,14 @@
 # go-lessons
 
-## mySemaphore
+## leybnitsRow
 status: done
 tests: no
+issues: go run ./leybnitsRow/cmd/main.go
 
-## leybnitsRow
-status: ошибки в расчетах, добавить сигналы
+## mySemaphore
+status: done
 tests: no
 
 ## closeOrChannel
 status: done
 tests: no
-
-
