@@ -12,3 +12,7 @@ tests: no
 ## closeOrChannel
 status: done
 tests: no
+
+## unpredictableFunc
+status: done
+tests: no
