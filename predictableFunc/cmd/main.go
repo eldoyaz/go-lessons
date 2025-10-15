@@ -60,5 +60,28 @@ func main() {
 	}(time.Now())
 
 	fmt.Println("started")
-	fmt.Println(predictableFunc())
+	//fmt.Println(predictableFunc())
+	fmt.Println(predictableFunc_v2())
+}
+
+func predictableFunc_v2() (int64, error) {
+
+	resultChan := make(chan int64)
+	defer close(resultChan)
+
+	go func() {
+		resultChan <- unpredictableFunc()
+		// @todo: надо ли прерывать эту горутину, если контекст завершился по таймауту?
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+
+	select {
+	case res := <-resultChan:
+		return res, nil
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
+
 }
