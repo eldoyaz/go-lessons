@@ -20,38 +20,35 @@ func unpredictableFunc() int64 {
 	return rnd
 }
 
-func unpredictableChan() chan int64 {
-	result := make(chan int64)
-	go func() {
-		result <- unpredictableFunc()
-	}()
-	return result
-}
-
 // Нужно изменить функцию обёртку, которая будет работать с заданным таймаутом (например, 1 секунду).
 // Если "длинная" функция отработала за это время - отлично, возвращаем результат.
 // Если нет - возвращаем ошибку. Результат работы в этом случае нам не важен.
 //
 // Дополнительно нужно измерить, сколько выполнялась эта функция (просто вывести в лог).
-// Сигнатуру функцию обёртки менять можно.
-func predictableFunc() (int64, error) {
+// Сигнатуру функции обёртки менять можно.
+func predictableFunc(ctx context.Context) (int64, error) {
 
-	result := make(chan int64)
-	defer close(result)
+	resultChan := make(chan int64)
+	//defer close(resultChan)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancel()
+	go func() {
+		defer close(resultChan)
+		defer fmt.Println("goroutine done") // @todo почему ИНОГДА эта строчка выводится РАНЬШЕ ?
 
-	go func(ctx context.Context) {
 		select {
-		case res := <-unpredictableChan():
-			result <- res
+		case resultChan <- unpredictableFunc():
+			println("unpredictableFunc done")
 		case <-ctx.Done():
-			result <- 0
+			println("ctx done")
 		}
-	}(ctx)
+	}()
 
-	return <-result, nil
+	select {
+	case res := <-resultChan:
+		return res, nil
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
 }
 
 func main() {
@@ -60,28 +57,13 @@ func main() {
 	}(time.Now())
 
 	fmt.Println("started")
-	//fmt.Println(predictableFunc())
-	fmt.Println(predictableFunc_v2())
-}
 
-func predictableFunc_v2() (int64, error) {
-
-	resultChan := make(chan int64)
-	defer close(resultChan)
-
-	go func() {
-		resultChan <- unpredictableFunc()
-		// @todo: надо ли прерывать эту горутину, если контекст завершился по таймауту?
-	}()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	select {
-	case res := <-resultChan:
-		return res, nil
-	case <-ctx.Done():
-		return 0, ctx.Err()
-	}
+	fmt.Println(predictableFunc(ctx))
+	fmt.Println(predictableFunc(ctx))
+	fmt.Println(predictableFunc(ctx))
 
+	time.Sleep(3 * time.Second)
 }
