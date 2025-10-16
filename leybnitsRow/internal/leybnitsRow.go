@@ -9,36 +9,30 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 )
 
 type PiCounter struct {
-	contextTimeoutSec int
-	goroutineCount    int
-	goroutineSum      chan float64
-	signChan          chan os.Signal
-	wg                *sync.WaitGroup
+	goroutineCount int
+	goroutineSum   chan float64
+	signChan       chan os.Signal
+	wg             *sync.WaitGroup
 }
 
-func NewPiCounter(goroutineCount, contextTimeout int) *PiCounter {
+func NewPiCounter(goroutineCount int) *PiCounter {
 	return &PiCounter{
-		contextTimeoutSec: contextTimeout,
-		goroutineCount:    goroutineCount,
-		goroutineSum:      make(chan float64, goroutineCount),
-		signChan:          make(chan os.Signal, 1),
-		wg:                &sync.WaitGroup{},
+		goroutineCount: goroutineCount,
+		goroutineSum:   make(chan float64, goroutineCount),
+		signChan:       make(chan os.Signal, 1),
+		wg:             &sync.WaitGroup{},
 	}
 }
 
-func (p *PiCounter) Start() {
+func (p *PiCounter) Start(ctx context.Context, cancel context.CancelFunc) {
 	defer func() {
 		close(p.goroutineSum)
 	}()
 
 	signal.Notify(p.signChan, syscall.SIGINT, syscall.SIGTERM)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.contextTimeoutSec)*time.Second)
-	defer cancel()
 
 	for i := int64(0); i < int64(p.goroutineCount); i++ {
 		p.wg.Add(1)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,8 +13,12 @@ func main() {
 		fmt.Printf("main() took %v\n", time.Since(now))
 	}(time.Now())
 
-	pc := internal.NewPiCounter(3, 9)
-	pc.Start()
+	pc := internal.NewPiCounter(31)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 9*time.Second)
+	defer cancel()
+
+	pc.Start(ctx, cancel)
 	pc.Print()
 
 }
