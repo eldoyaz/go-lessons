@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 )
 
 /*
@@ -22,7 +23,7 @@ import (
 
 const BasketStatusOrdered = "ordered"
 
-func (bs *BasketServer) AddItemAndOrder(ctx context.Context, req *AddItemRequest) (*EmptyResponse, error) {
+func (bs *BasketService) AddItemAndOrder(ctx context.Context, req *AddItemRequest) (*EmptyResponse, error) {
 	basket, err := bs.repo.Load(ctx, req.UserID)
 	if err != nil {
 		return nil, err
@@ -31,7 +32,7 @@ func (bs *BasketServer) AddItemAndOrder(ctx context.Context, req *AddItemRequest
 	// place your code
 
 	if basket.Status == BasketStatusOrdered { // basket.IsOrdered() bool
-		return nil, error.New("status already ordered")
+		return nil, errors.New("status already ordered")
 	}
 
 	// bs.service.AddItemAndOrder()
@@ -72,7 +73,7 @@ func (bs *BasketServer) AddItemAndOrder(ctx context.Context, req *AddItemRequest
 		return nil, err
 	}
 
-	err = bs.producer.SendMessage(ctx, basket)
+	err = bs.producer.SendMessage(ctx, *basket)
 	if err != nil {
 		return nil, err
 	}
