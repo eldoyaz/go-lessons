@@ -16,3 +16,7 @@ tests: no
 ## unpredictableFunc
 status: done
 tests: no
+
+## woorkerPool
+переделать на интерфейс
+тесты обязательно ко всем!! 
