@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"sync"
+	"time"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -62,6 +63,7 @@ func Run(tasks []Task, n, m int) error {
 		}
 		mu.Unlock()
 		taskChan <- task
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	// Закрываем канал задач
