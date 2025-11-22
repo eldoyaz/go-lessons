@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"go.uber.org/goleak"
 )
 
 func init() {
@@ -12,6 +14,8 @@ func init() {
 }
 
 func TestRunStopsOnErrorsLimit(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	const (
 		tasksCount = 10
 		workers    = 50
