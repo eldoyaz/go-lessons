@@ -8,7 +8,7 @@ import (
 
 func main() {
 	defer func(now time.Time) {
-		fmt.Printf("main() took %v\n", time.Since(now))
+		fmt.Printf("\n=====\nmain() took %v\n", time.Since(now))
 	}(time.Now())
 
 	fmt.Println("=== Пример 1: Базовый пайплайн ===")
@@ -21,13 +21,11 @@ func main() {
 	example3()
 }
 
-// example1 демонстрирует базовую работу пайплайна
+// example1 базовая работа пайплайна
 func example1() {
-	// Создаем входной канал
 	in := make(chan interface{})
 	done := make(chan interface{})
 
-	// Определяем стейджи
 	stage1 := func(in mypipe.In) mypipe.Out {
 		out := make(chan interface{})
 		go func() {
@@ -88,13 +86,13 @@ func example1() {
 	}
 }
 
-// example2 демонстрирует конкуррентность пайплайна
+// example2  конкуррентность пайплайна
 func example2() {
 	// Создаем входной канал
 	in := make(chan interface{})
 	done := make(chan interface{})
 
-	// Стейдж с задержкой 100мс
+	// Стейдж с задержкой
 	slowStage := func(duration time.Duration) mypipe.Stage {
 		return func(in mypipe.In) mypipe.Out {
 			out := make(chan interface{})
@@ -138,12 +136,10 @@ func example2() {
 	}
 	fmt.Printf("Всего обработано: %d элементов за %v\n", count, time.Since(start))
 	fmt.Printf("Если бы было последовательно: 4 стейджа * 100мс * 5 элементов = 2 секунды\n")
-	fmt.Printf("Конкуррентно получилось: %v (должно быть значительно быстрее)\n", time.Since(start))
 }
 
-// example3 демонстрирует остановку пайплайна через done канал
+// example3 остановка пайплайна через done канал
 func example3() {
-	// Создаем входной канал
 	in := make(chan interface{})
 	done := make(chan interface{})
 
@@ -153,7 +149,7 @@ func example3() {
 		go func() {
 			defer close(out)
 			for val := range in {
-				// Имитация работы - задержка 200мс
+				// Имитация работы
 				time.Sleep(200 * time.Millisecond)
 				out <- val
 			}
@@ -177,14 +173,14 @@ func example3() {
 		}
 	}()
 
-	// Останавливаем пайплайн через 500мс
+	// Останавливаем через...
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		fmt.Println("Отправляем сигнал остановки...")
 		close(done)
 	}()
 
-	// Читаем результаты
+	// Считаем результаты
 	count := 0
 	for result := range out {
 		count++

@@ -15,17 +15,29 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 		// Если стейджей нет, просто возвращаем входной канал
 		return in
 	}
+	/*
+	   	var out Out
+
+	   	// Последовательно применяем каждый стейдж
+	   	for _, stage := range stages {
+	   		// Применяем стейдж с обработкой done и паники
+	   		out = wrapStage(stage, in, done)
+	   	}
+
+	   	return out
+	   }
+	*/
 
 	// Создаем входной канал с поддержкой done
-	currentIn := wrapInputWithDone(in, done)
+	wrappedIn := wrapInputWithDone(in, done)
 
 	// Последовательно применяем каждый стейдж
 	for _, stage := range stages {
 		// Применяем стейдж с обработкой done и паники
-		currentIn = wrapStage(stage, currentIn, done)
+		wrappedIn = wrapStage(stage, wrappedIn, done)
 	}
 
-	return currentIn
+	return wrappedIn
 }
 
 // wrapInputWithDone оборачивает входной канал для обработки done
